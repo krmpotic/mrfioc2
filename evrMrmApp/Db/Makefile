@@ -19,6 +19,7 @@ DB += evr-cpci-300.db
 DB += evr-vmerf-230.db
 DB += evr-tg-300.db
 DB += evr-mtca-300.db
+#DB += evr-mtca-300u.db
 DB += evr-pcie-300dc.db
 
 ifneq ($(DEVIOCSTATS),)

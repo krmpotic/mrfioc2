@@ -173,6 +173,25 @@ static const EVRMRM::Config cpci_evr_300 = {
     2,  // FP inputs
 };
 
+static const EVRMRM::Config mtca_evr_300u = { // with UNIV slots on FP
+    "mTCA-EVR-300U",
+    16, // pulse generators
+    8,  // prescalers
+    4,  // FP outputs
+    4,  // FPUV outputs
+    16, // RB outputs  (RTM)
+    8,  // Backplane outputs
+    2,  // FP Delay outputs
+    0,  // CML/GTX outputs
+    MRMCML::typeTG300,
+    /**
+     * 0 <= N <= 3   : FPInMap
+     * 4 <= N <= 23  : UnivInMap
+     * 24 <= N <= 31 : BPInMap
+     */
+    32,  // FP, Univ, BP inputs
+};
+
 static const EVRMRM::Config mtca_evr_300 = {
     "mTCA-EVR-300",
     16, // pulse generators
@@ -437,7 +456,7 @@ static bool checkUIOVersion(int,int,int*) {return false;}
 #endif
 
 void
-mrmEvrSetupPCI(const char* id,const char* pcispec)
+mrmEvrSetupPCI(const char* id,const char* pcispec, const char* mtca_evr_model)
 {
 try {
     bus_configuration bus;
@@ -478,8 +497,21 @@ try {
     case PCI_DEVICE_ID_MRF_PXIEVR_230: conf = &cpci_evr_230; break;
     case PCI_DEVICE_ID_MRF_EVRTG_300:  conf = &cpci_evrtg_300; break;
     case PCI_DEVICE_ID_MRF_CPCIEVR300: conf = &cpci_evr_300; break;
-    case PCI_DEVICE_ID_MRF_EVRMTCA300: conf = &mtca_evr_300; break;
-        // ambiguity
+    case PCI_DEVICE_ID_MRF_EVRMTCA300:
+        if (mtca_evr_model == NULL)
+            mtca_evr_model = "IFB";
+
+        if (strcmp(mtca_evr_model, "UNIV") == 0) {
+            printf("config for EVR FP UNIV model\n");
+            conf = &mtca_evr_300u;
+        } else if (strcmp(mtca_evr_model, "IFB") == 0) {
+            printf("config for EVR FP IFB model\n");
+            conf = &mtca_evr_300;
+        } else {
+            printf("Error: mtca_evr_model arg (%s), need 'UNIV' or 'IFB' (default).\n", mtca_evr_model);
+            return;
+        }
+        break;
     case PCI_DEVICE_ID_MRF_EVRTG_300E: // aka PCI_SUBDEVICE_ID_PCIE_EVR_300
         switch (cur->id.device) {
         case PCI_DEVICE_ID_EC_30: conf = &cpci_evrtg_300; break;
